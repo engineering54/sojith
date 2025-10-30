@@ -1,0 +1,52 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('contact-form');
+    const statusMessage = document.getElementById('status-message');
+    const submitBtn = document.getElementById('submit-btn');
+
+    // The URL of your running Node.js server
+    const API_URL = 'http://localhost:3000/api/contact'; 
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault(); // Stop the default form submission
+
+        // Clear previous status
+        statusMessage.textContent = '';
+        statusMessage.className = '';
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Sending...';
+
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // Success
+                statusMessage.textContent = result.message || 'Thank you for your message!';
+                statusMessage.classList.add('success');
+                form.reset(); // Clear the form
+            } else {
+                // Server-side error (400, 500)
+                statusMessage.textContent = result.message || 'Submission failed. Please try again.';
+                statusMessage.classList.add('error');
+            }
+        } catch (error) {
+            // Network or CORS error
+            console.error('Submission Error:', error);
+            statusMessage.textContent = 'Could not reach the server. Check the Node.js console.';
+            statusMessage.classList.add('error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Send Message';
+        }
+    });
+});
